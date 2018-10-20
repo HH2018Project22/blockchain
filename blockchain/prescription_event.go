@@ -3,7 +3,6 @@ package blockchain
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 
 	"gopkg.in/go-playground/validator.v9"
 )
@@ -18,13 +17,12 @@ func (e *PrescriptionEvent) Type() EventType {
 	return PrescriptionEventType
 }
 
-func (e *PrescriptionEvent) Validate(bc *Blockchain) bool {
+func (e *PrescriptionEvent) Validate(bc *Blockchain) error {
 	validate := validator.New()
 	if err := validate.Struct(e); err != nil {
-		fmt.Print(err)
-		return false
+		return err
 	}
-	return true
+	return nil
 }
 
 func (e *PrescriptionEvent) Hash() []byte {

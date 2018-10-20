@@ -33,8 +33,8 @@ func doPrescription(args []string) {
 	}
 
 	prescriptionEvent := blockchain.NewPrescriptionEvent(prescription)
-	if result := bc.AddEvent(prescriptionEvent); !result {
-		panic("invalid prescription")
+	if err := bc.AddEvent(prescriptionEvent); err != nil {
+		panic(err)
 	}
 
 	log.Println("saving blockchain")

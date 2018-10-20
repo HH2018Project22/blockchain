@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"strconv"
 )
 
 var dumpCommand = flag.NewFlagSet("dump", flag.ExitOnError)
@@ -27,7 +26,6 @@ func doDump(args []string) {
 			panic(err)
 		}
 		fmt.Printf("Event: %s\n", data)
-		fmt.Printf("Valid: %s\n", strconv.FormatBool(b.Validate(bc)))
 		fmt.Printf("------------\n")
 	}
 

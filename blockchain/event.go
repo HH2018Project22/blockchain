@@ -8,5 +8,5 @@ type Event interface {
 	json.Marshaler
 	Type() EventType
 	Hash() []byte
-	Validate(bc *Blockchain) bool
+	Validate(bc *Blockchain) error
 }

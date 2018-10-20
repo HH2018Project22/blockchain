@@ -3,7 +3,7 @@ package blockchain
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
+	"errors"
 
 	validator "gopkg.in/go-playground/validator.v9"
 )
@@ -46,39 +46,38 @@ func (e *NotificationEvent) Type() EventType {
 	return NotificationEventType
 }
 
-func (e *NotificationEvent) Validate(bc *Blockchain) bool {
+func (e *NotificationEvent) Validate(bc *Blockchain) error {
 
 	validate := validator.New()
 	if err := validate.Struct(e); err != nil {
-		fmt.Print(err)
-		return false
+		return err
 	}
 
 	prescription := bc.FindPrescription(e.PrescriptionHash)
 	if prescription == nil {
-		return false
+		return errors.New("prescription does not exist")
 	}
 
 	events := bc.FindPrescriptionNotificationEvents(prescription.Hash())
 	for _, ee := range events {
 		if e.NotificationType == ee.NotificationType {
-			return false
+			return errors.New("notification already exists")
 		}
 	}
 
 	if e.NotificationType == Received {
-		return true
+		return nil
 	}
 
 	parentNotificationType := getParentNotificationType(e.NotificationType)
 
 	for _, e := range events {
 		if e.NotificationType == parentNotificationType {
-			return true
+			return nil
 		}
 	}
 
-	return false
+	return errors.New("invalid notification event")
 }
 
 func (e *NotificationEvent) Hash() []byte {

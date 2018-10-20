@@ -14,9 +14,15 @@ type Block struct {
 	Nonce         int    `json:"nonce"`
 }
 
-func (b *Block) Validate(bc *Blockchain) bool {
+func (b *Block) Validate(bc *Blockchain) error {
 	pow := NewProofOfWork(b)
-	return b.Event.Validate(bc) && pow.Validate()
+	if err := b.Event.Validate(bc); err != nil {
+		return err
+	}
+	if err := pow.Validate(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (b *Block) UnmarshalJSON(data []byte) error {

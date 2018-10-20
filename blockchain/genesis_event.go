@@ -10,8 +10,8 @@ func (e *GenesisEvent) Type() EventType {
 	return GenesisEventType
 }
 
-func (e *GenesisEvent) Validate(bc *Blockchain) bool {
-	return true
+func (e *GenesisEvent) Validate(bc *Blockchain) error {
+	return nil
 }
 
 func (e *GenesisEvent) Hash() []byte {

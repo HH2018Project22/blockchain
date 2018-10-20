@@ -11,10 +11,6 @@ var (
 	listPrescriptionCommand = flag.NewFlagSet("list_prescription", flag.ExitOnError)
 )
 
-func init() {
-
-}
-
 func doListPrescription(args []string) {
 
 	if err := listPrescriptionCommand.Parse(args); err != nil {

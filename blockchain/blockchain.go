@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"sort"
+	"sync"
 	"time"
 
 	"github.com/boltdb/bolt"
@@ -13,30 +15,49 @@ var (
 	blocksBucket = []byte("blocks")
 )
 
+type BlockHookFunc func(block *Block) error
+
 type Blockchain struct {
-	blocks []*Block
+	blocks             []*Block
+	mutex              sync.RWMutex
+	beforeAddBlockHook BlockHookFunc
 }
 
 func (bc *Blockchain) Blocks() []*Block {
 	return bc.blocks
 }
 
-func (bc *Blockchain) AddEvent(event Event) bool {
-	if !event.Validate(bc) {
-		return false
+func (bc *Blockchain) AddEvent(event Event) error {
+	if err := event.Validate(bc); err != nil {
+		return err
 	}
 	prevBlock := bc.blocks[len(bc.blocks)-1]
 	newBlock := NewBlock(event, prevBlock.Hash)
-	bc.blocks = append(bc.blocks, newBlock)
-	return true
+	return bc.add(newBlock)
 }
 
-func (bc *Blockchain) AddBlock(block *Block) bool {
-	if !block.Validate(bc) {
-		return false
+func (bc *Blockchain) AddBlock(block *Block) error {
+	if err := block.Validate(bc); err != nil {
+		return err
+	}
+	return bc.add(block)
+}
+
+func (bc *Blockchain) add(block *Block) error {
+	bc.mutex.Lock()
+	defer bc.mutex.Unlock()
+	for _, b := range bc.blocks {
+		if bytes.Compare(b.PrevBlockHash, block.PrevBlockHash) == 0 {
+			return errors.New("parent already used")
+		}
+	}
+	if bc.beforeAddBlockHook != nil {
+		if err := bc.beforeAddBlockHook(block); err != nil {
+			return err
+		}
 	}
 	bc.blocks = append(bc.blocks, block)
-	return true
+	return nil
 }
 
 func (bc *Blockchain) ListPrescriptions() []*Prescription {
@@ -57,7 +78,7 @@ func (bc *Blockchain) FindPrescriptionNotificationEvents(prescriptionHash []byte
 			continue
 		}
 		notificationEvent := b.Event.(*NotificationEvent)
-		if bytes.Compare(prescriptionHash, notificationEvent.PrescriptionHash) == -1 {
+		if bytes.Compare(prescriptionHash, notificationEvent.PrescriptionHash) != 0 {
 			continue
 		}
 		events = append(events, notificationEvent)
@@ -69,7 +90,7 @@ func (bc *Blockchain) FindPrescription(prescriptionHash []byte) *Prescription {
 	for _, b := range bc.blocks {
 		if b.Event.Type() == PrescriptionEventType {
 			pe := b.Event.(*PrescriptionEvent)
-			if bytes.Compare(pe.Prescription.Hash(), prescriptionHash) != -1 {
+			if bytes.Compare(pe.Prescription.Hash(), prescriptionHash) == 0 {
 				return pe.Prescription
 			}
 		}
@@ -101,7 +122,7 @@ func (bc *Blockchain) Save(path string) error {
 	})
 }
 
-func LoadBlockchain(path string) (*Blockchain, error) {
+func LoadBlockchain(path string, beforeAddBlockHook BlockHookFunc) (*Blockchain, error) {
 
 	db, err := bolt.Open(path, 0666, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
@@ -130,13 +151,30 @@ func LoadBlockchain(path string) (*Blockchain, error) {
 		return nil, err
 	}
 
-	return &Blockchain{blocks}, nil
+	bc := &Blockchain{
+		blocks:             blocks,
+		beforeAddBlockHook: beforeAddBlockHook,
+	}
+
+	bc.sortBlocks()
+
+	return bc, nil
+
 }
 
-func NewBlockchain() *Blockchain {
+func (bc *Blockchain) sortBlocks() {
+	sort.Slice(bc.blocks, func(i, j int) bool {
+		a := bc.blocks[i]
+		b := bc.blocks[j]
+		return a.Timestamp < b.Timestamp
+	})
+}
+
+func NewBlockchain(beforeAddBlockHook BlockHookFunc) *Blockchain {
 	return &Blockchain{
 		blocks: []*Block{
 			NewGenesisBlock(),
 		},
+		beforeAddBlockHook: beforeAddBlockHook,
 	}
 }

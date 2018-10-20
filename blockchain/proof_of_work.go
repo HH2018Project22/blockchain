@@ -3,6 +3,7 @@ package blockchain
 import (
 	"bytes"
 	"crypto/sha256"
+	"errors"
 	"math"
 	"math/big"
 )
@@ -58,16 +59,19 @@ func (pow *ProofOfWork) Run() (int, []byte) {
 	return nonce, hash[:]
 }
 
-func (pow *ProofOfWork) Validate() bool {
+func (pow *ProofOfWork) Validate() error {
 	var hashInt big.Int
 
 	data := pow.prepareData(pow.block.Nonce)
 	hash := sha256.Sum256(data)
 	hashInt.SetBytes(hash[:])
 
-	isValid := hashInt.Cmp(pow.target) == -1
+	if isValid := hashInt.Cmp(pow.target) == -1; !isValid {
+		return errors.New("invalid proof of work hash")
+	}
 
-	return isValid
+	return nil
+
 }
 
 func NewProofOfWork(b *Block) *ProofOfWork {

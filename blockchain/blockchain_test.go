@@ -2,13 +2,12 @@ package blockchain
 
 import (
 	"fmt"
-	"strconv"
 	"testing"
 )
 
 func TestBlockchain(t *testing.T) {
 
-	bc := NewBlockchain()
+	bc := NewBlockchain(nil)
 
 	patient := NewPatient("John", "Doe", "Doe", "01/01/1970", SexMale)
 	prescription := NewPrescription(patient)
@@ -20,7 +19,7 @@ func TestBlockchain(t *testing.T) {
 		fmt.Printf("Event: %v\n", block.Event)
 		fmt.Printf("Hash: %x\n", block.Hash)
 		pow := NewProofOfWork(block)
-		fmt.Printf("PoW: %s\n", strconv.FormatBool(pow.Validate()))
+		fmt.Printf("PoW: %s\n", pow.Validate())
 		fmt.Println()
 	}
 
