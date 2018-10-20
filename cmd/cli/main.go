@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/HH2018Project22/blockchain"
+	"github.com/HH2018Project22/blockchain/blockchain"
 )
 
 var (
