@@ -4,7 +4,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/HH2018Project22/blockchain/blockchain"
+	"github.com/HH2018Project22/bloodcoin/blockchain"
 )
 
 var (
