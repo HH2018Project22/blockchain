@@ -7,11 +7,11 @@ import (
 )
 
 type Block struct {
-	Timestamp     int64  `json:"ts"`
-	Event         Event  `json:"evt"`
-	PrevBlockHash []byte `json:"prv"`
-	Hash          []byte `json:"hsh"`
-	Nonce         int    `json:"nce"`
+	Timestamp     int64  `json:"timestamp"`
+	Event         Event  `json:"event"`
+	PrevBlockHash []byte `json:"previousBlockHash"`
+	Hash          []byte `json:"hash"`
+	Nonce         int    `json:"nonce"`
 }
 
 func (b *Block) Validate(bc *Blockchain) bool {
@@ -26,48 +26,48 @@ func (b *Block) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	if err := json.Unmarshal(*rawBlock["ts"], &b.Timestamp); err != nil {
+	if err := json.Unmarshal(*rawBlock["timestamp"], &b.Timestamp); err != nil {
 		return err
 	}
 
-	if err := json.Unmarshal(*rawBlock["prv"], &b.PrevBlockHash); err != nil {
+	if err := json.Unmarshal(*rawBlock["previousBlockHash"], &b.PrevBlockHash); err != nil {
 		return err
 	}
 
-	if err := json.Unmarshal(*rawBlock["hsh"], &b.Hash); err != nil {
+	if err := json.Unmarshal(*rawBlock["hash"], &b.Hash); err != nil {
 		return err
 	}
 
-	if err := json.Unmarshal(*rawBlock["nce"], &b.Nonce); err != nil {
+	if err := json.Unmarshal(*rawBlock["nonce"], &b.Nonce); err != nil {
 		return err
 	}
 
 	var rawEvent map[string]*json.RawMessage
-	if err := json.Unmarshal(*rawBlock["evt"], &rawEvent); err != nil {
+	if err := json.Unmarshal(*rawBlock["event"], &rawEvent); err != nil {
 		return err
 	}
 
 	var eventType EventType
-	if err := json.Unmarshal(*rawEvent["typ"], &eventType); err != nil {
+	if err := json.Unmarshal(*rawEvent["type"], &eventType); err != nil {
 		return err
 	}
 
 	switch eventType {
-	case Genesis:
+	case GenesisEventType:
 		event := &GenesisEvent{}
-		if err := json.Unmarshal(*rawBlock["evt"], event); err != nil {
+		if err := json.Unmarshal(*rawBlock["event"], event); err != nil {
 			return err
 		}
 		b.Event = event
-	case Prescription:
+	case PrescriptionEventType:
 		event := &PrescriptionEvent{}
-		if err := json.Unmarshal(*rawBlock["evt"], event); err != nil {
+		if err := json.Unmarshal(*rawBlock["event"], event); err != nil {
 			return err
 		}
 		b.Event = event
-	case Notification:
+	case NotificationEventType:
 		event := &NotificationEvent{}
-		if err := json.Unmarshal(*rawBlock["evt"], event); err != nil {
+		if err := json.Unmarshal(*rawBlock["event"], event); err != nil {
 			return err
 		}
 		b.Event = event

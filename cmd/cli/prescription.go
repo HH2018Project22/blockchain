@@ -1,26 +1,20 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"log"
-	"time"
 
 	"github.com/HH2018Project22/bloodcoin/blockchain"
 )
 
 var (
 	prescriptionCommand = flag.NewFlagSet("prescription", flag.ExitOnError)
-	firstName           string
-	lastName            string
-	useName             string
-	birthDate           string
+	data                string
 )
 
 func init() {
-	prescriptionCommand.StringVar(&firstName, "first-name", firstName, "First name")
-	prescriptionCommand.StringVar(&lastName, "last-name", lastName, "Last name")
-	prescriptionCommand.StringVar(&useName, "use-name", useName, "Use name")
-	prescriptionCommand.StringVar(&birthDate, "birth-date", birthDate, "Birth name")
+	prescriptionCommand.StringVar(&data, "data", data, "Prescription data")
 }
 
 func doPrescription(args []string) {
@@ -33,18 +27,19 @@ func doPrescription(args []string) {
 
 	log.Println("adding prescription")
 
-	birthDateTime, err := time.Parse("01/02/2006", birthDate)
-	if err != nil {
+	prescription := &blockchain.Prescription{}
+	if err := json.Unmarshal([]byte(data), prescription); err != nil {
 		panic(err)
 	}
 
-	patient := blockchain.NewPatient(firstName, lastName, useName, birthDateTime)
-	prescription := blockchain.NewPrescriptionEvent(patient)
-	bc.AddEvent(prescription)
+	prescriptionEvent := blockchain.NewPrescriptionEvent(prescription)
+	if result := bc.AddEvent(prescriptionEvent); !result {
+		panic("invalid prescription")
+	}
 
 	log.Println("saving blockchain")
 	if err := bc.Save(blockchainPath); err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 }

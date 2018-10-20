@@ -20,10 +20,14 @@ func (bc *Blockchain) Blocks() []*Block {
 	return bc.blocks
 }
 
-func (bc *Blockchain) AddEvent(event Event) {
+func (bc *Blockchain) AddEvent(event Event) bool {
+	if !event.Validate(bc) {
+		return false
+	}
 	prevBlock := bc.blocks[len(bc.blocks)-1]
 	newBlock := NewBlock(event, prevBlock.Hash)
 	bc.blocks = append(bc.blocks, newBlock)
+	return true
 }
 
 func (bc *Blockchain) AddBlock(block *Block) bool {

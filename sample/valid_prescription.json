@@ -1,0 +1,22 @@
+{
+  "patient": {
+    "firstName": "John",
+    "lastName": "Doe",
+    "useName": "Doe",
+    "birthDate": "01/01/1970",
+    "sex": "male"
+  },
+  "prescriptor": {
+    "firstName": "Doctor",
+    "lastName": "Who",
+    "service": "Time Lords"
+  },
+  "order": {
+    "id": "1",
+    "amount": 2,
+    "bloodType": "AB-",
+    "transfusionProtocol": "RAS",
+    "transfusionTime": "2018-10-19T16:16:30Z"
+  },
+  "urgency": "low"
+}

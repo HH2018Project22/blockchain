@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 )
 
-const Notification EventType = "notification"
+const NotificationEventType EventType = "notification"
 
 const (
 	Packaging  NotificationType = "packaging"
@@ -18,12 +18,12 @@ const (
 type NotificationType string
 
 type NotificationEvent struct {
-	PrescriptionHash []byte           `json:"pre"`
-	NotificationType NotificationType `json:"not"`
+	PrescriptionHash []byte           `json:"prescription"`
+	NotificationType NotificationType `json:"notification"`
 }
 
 func (e *NotificationEvent) Type() EventType {
-	return Notification
+	return NotificationEventType
 }
 
 func (e *NotificationEvent) Validate(bc *Blockchain) bool {
@@ -32,7 +32,7 @@ func (e *NotificationEvent) Validate(bc *Blockchain) bool {
 
 func (e *NotificationEvent) Hash() []byte {
 	return bytes.Join([][]byte{
-		[]byte(Notification),
+		[]byte(NotificationEventType),
 		e.PrescriptionHash,
 		[]byte(e.NotificationType),
 	}, []byte{})
@@ -40,10 +40,10 @@ func (e *NotificationEvent) Hash() []byte {
 
 func (e *NotificationEvent) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
-		Type             EventType        `json:"typ"`
-		PrescriptionHash []byte           `json:"pre"`
-		NotificationType NotificationType `json:"not"`
-	}{Notification, e.PrescriptionHash, e.NotificationType})
+		Type             EventType        `json:"type"`
+		PrescriptionHash []byte           `json:"prescription"`
+		NotificationType NotificationType `json:"notification"`
+	}{NotificationEventType, e.PrescriptionHash, e.NotificationType})
 }
 
 func NewNotificationEvent(prescriptionHash []byte, notificationType NotificationType) Event {

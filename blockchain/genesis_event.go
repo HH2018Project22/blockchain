@@ -2,12 +2,12 @@ package blockchain
 
 import "encoding/json"
 
-const Genesis EventType = "genesis"
+const GenesisEventType EventType = "genesis"
 
 type GenesisEvent struct{}
 
 func (e *GenesisEvent) Type() EventType {
-	return Genesis
+	return GenesisEventType
 }
 
 func (e *GenesisEvent) Validate(bc *Blockchain) bool {
@@ -15,13 +15,13 @@ func (e *GenesisEvent) Validate(bc *Blockchain) bool {
 }
 
 func (e *GenesisEvent) Hash() []byte {
-	return []byte(Genesis)
+	return []byte(GenesisEventType)
 }
 
 func (e *GenesisEvent) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
-		Type EventType `json:"typ"`
-	}{Genesis})
+		Type EventType `json:"type"`
+	}{GenesisEventType})
 }
 
 func NewGenesisEvent() Event {
