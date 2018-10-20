@@ -65,6 +65,12 @@ func (b *Block) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		b.Event = event
+	case Notification:
+		event := &NotificationEvent{}
+		if err := json.Unmarshal(*rawBlock["evt"], event); err != nil {
+			return err
+		}
+		b.Event = event
 	default:
 		return fmt.Errorf("unknown event type '%s'", eventType)
 	}

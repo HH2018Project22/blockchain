@@ -20,10 +20,18 @@ func (bc *Blockchain) Blocks() []*Block {
 	return bc.blocks
 }
 
-func (bc *Blockchain) AddBlock(event Event) {
+func (bc *Blockchain) AddEvent(event Event) {
 	prevBlock := bc.blocks[len(bc.blocks)-1]
 	newBlock := NewBlock(event, prevBlock.Hash)
 	bc.blocks = append(bc.blocks, newBlock)
+}
+
+func (bc *Blockchain) AddBlock(block *Block) bool {
+	if !block.Validate(bc) {
+		return false
+	}
+	bc.blocks = append(bc.blocks, block)
+	return true
 }
 
 func (bc *Blockchain) Save(path string) error {

@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	blockchainPath = "blockchain.db"
+	blockchainPath = "bloodcoin.db"
 )
 
 func init() {
@@ -27,20 +27,18 @@ func main() {
 	}
 
 	command := os.Args[1]
+	args := os.Args[2:]
 
 	switch command {
 
 	case "prescription":
-		if err := prescriptionCommand.Parse(os.Args); err != nil {
-			log.Fatal(err)
-		}
-		doPrescription()
+		doPrescription(args)
+
+	case "notification":
+		doNotification(args)
 
 	case "dump":
-		if err := dumpCommand.Parse(os.Args); err != nil {
-			log.Fatal(err)
-		}
-		doDump()
+		doDump(args)
 
 	default:
 		help()
