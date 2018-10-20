@@ -54,7 +54,31 @@ func (e *NotificationEvent) Validate(bc *Blockchain) bool {
 		return false
 	}
 
-	return true
+	prescription := bc.FindPrescription(e.PrescriptionHash)
+	if prescription == nil {
+		return false
+	}
+
+	events := bc.FindPrescriptionNotificationEvents(prescription.Hash())
+	for _, ee := range events {
+		if e.NotificationType == ee.NotificationType {
+			return false
+		}
+	}
+
+	if e.NotificationType == Received {
+		return true
+	}
+
+	parentNotificationType := getParentNotificationType(e.NotificationType)
+
+	for _, e := range events {
+		if e.NotificationType == parentNotificationType {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (e *NotificationEvent) Hash() []byte {
