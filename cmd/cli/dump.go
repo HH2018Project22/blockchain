@@ -4,12 +4,17 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"log"
 	"strconv"
 )
 
 var dumpCommand = flag.NewFlagSet("dump", flag.ExitOnError)
 
-func doDump() {
+func doDump(args []string) {
+
+	if err := dumpCommand.Parse(args); err != nil {
+		log.Fatal(err)
+	}
 
 	bc := getBlockchain()
 

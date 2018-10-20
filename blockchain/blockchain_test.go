@@ -18,7 +18,7 @@ func TestBlockchain(t *testing.T) {
 
 	patient := NewPatient("John", "Doe", "Doe", birthDate)
 
-	bc.AddBlock(NewPrescriptionEvent(patient))
+	bc.AddEvent(NewPrescriptionEvent(patient))
 
 	for _, block := range bc.blocks {
 		fmt.Printf("Prev. hash: %x\n", block.PrevBlockHash)

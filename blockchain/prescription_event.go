@@ -8,7 +8,7 @@ import (
 const Prescription EventType = "prescription"
 
 type PrescriptionEvent struct {
-	Patient *Patient `json:"patient"`
+	Patient *Patient `json:"pat"`
 }
 
 func (e *PrescriptionEvent) Type() EventType {
@@ -32,7 +32,7 @@ func (e *PrescriptionEvent) Hash() []byte {
 func (e *PrescriptionEvent) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		Type    EventType `json:"typ"`
-		Patient *Patient  `json:"patient"`
+		Patient *Patient  `json:"pat"`
 	}{Prescription, e.Patient})
 }
 

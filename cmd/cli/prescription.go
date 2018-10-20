@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/HH2018Project22/blockchain"
+	"github.com/HH2018Project22/blockchain/blockchain"
 )
 
 var (
@@ -13,23 +13,36 @@ var (
 	firstName           string
 	lastName            string
 	useName             string
-	birthDate           time.Time
+	birthDate           string
 )
 
-func doPrescription() {
+func init() {
+	prescriptionCommand.StringVar(&firstName, "first-name", firstName, "First name")
+	prescriptionCommand.StringVar(&lastName, "last-name", lastName, "Last name")
+	prescriptionCommand.StringVar(&useName, "use-name", useName, "Use name")
+	prescriptionCommand.StringVar(&birthDate, "birth-date", birthDate, "Birth name")
+}
+
+func doPrescription(args []string) {
+
+	if err := prescriptionCommand.Parse(args); err != nil {
+		panic(err)
+	}
 
 	bc := getBlockchain()
 
 	log.Println("adding prescription")
 
-	prescription := blockchain.NewPrescriptionEvent(&blockchain.Patient{
-		FirstName: "John",
-		LastName:  "Doe",
-		UseName:   "Doe",
-	})
+	birthDateTime, err := time.Parse("01/02/2006", birthDate)
+	if err != nil {
+		panic(err)
+	}
 
-	bc.AddBlock(prescription)
+	patient := blockchain.NewPatient(firstName, lastName, useName, birthDateTime)
+	prescription := blockchain.NewPrescriptionEvent(patient)
+	bc.AddEvent(prescription)
 
+	log.Println("saving blockchain")
 	if err := bc.Save(blockchainPath); err != nil {
 		log.Fatal(err)
 	}
