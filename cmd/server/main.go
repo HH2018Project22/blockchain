@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -18,6 +19,10 @@ var (
 	bc           *blockchain.Blockchain
 	peerEndpoint = ""
 )
+
+type PrescriptionHash struct {
+	Hash string `json:"hash"`
+}
 
 func init() {
 	flag.StringVar(&dbPath, "db", dbPath, "Database file path")
@@ -46,8 +51,12 @@ func main() {
 	r.Use(middleware.URLFormat)
 
 	r.Route("/prescriptions", func(r chi.Router) {
-		r.Get("/list", ListPrescriptions)
+		r.Get("/", ListPrescriptions)
 		r.Post("/new", CreatePrescription)
+		r.Route("/{prescriptionHash}", func(r chi.Router) {
+			r.Get("/", ReadPrescription)
+			r.Get("/notifications", ReadPrescriptionNotifications)
+		})
 	})
 
 	r.Route("/notifications", func(r chi.Router) {
@@ -69,6 +78,47 @@ func ListBlocks(w http.ResponseWriter, r *http.Request) {
 func ListPrescriptions(w http.ResponseWriter, r *http.Request) {
 	prescriptions := bc.ListPrescriptions()
 	writeJSON(w, prescriptions)
+}
+
+func ReadPrescription(w http.ResponseWriter, r *http.Request) {
+	prescriptionHash := chi.URLParam(r, "prescriptionHash")
+
+	b64hash, err := base64.URLEncoding.DecodeString(prescriptionHash)
+
+	if err != nil {
+		panic(err)
+	}
+
+	block := bc.FindPrescriptionBlock(b64hash)
+
+	if block == nil {
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+
+	prescriptionEvent := block.Event.(*blockchain.PrescriptionEvent)
+
+	writeJSON(w, prescriptionEvent.Prescription)
+}
+
+func ReadPrescriptionNotifications(w http.ResponseWriter, r *http.Request) {
+	prescriptionHash := chi.URLParam(r, "prescriptionHash")
+
+	b64hash, err := base64.URLEncoding.DecodeString(prescriptionHash)
+
+	if err != nil {
+		panic(err)
+	}
+
+	events := bc.FindPrescriptionNotificationEvents(b64hash)
+
+	s := make([]*blockchain.NotificationEvent, 0)
+
+	for _, event := range events {
+		s = append(s, event)
+	}
+
+	writeJSON(w, s)
 }
 
 // CreatePrescription persists the posted Prescription and returns it
