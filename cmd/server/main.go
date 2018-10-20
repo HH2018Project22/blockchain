@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"html/template"
@@ -16,13 +17,20 @@ import (
 	"github.com/oxtoacart/bpool"
 )
 
-// Article data model. I suggest looking at https://upper.io for an easy
-// and powerful data persistence adapter.
 type Prescription struct {
-	ID     string `json:"id"`
-	UserID int64  `json:"user_id"` // the author
-	Title  string `json:"title"`
-	Slug   string `json:"slug"`
+	ID string `json:"id"`
+}
+
+type PrescriptionRequest struct {
+	Prescription *Prescription `json:"prescription"`
+}
+
+type PrescriptionResponse struct {
+	*Prescription
+
+	// We add an additional field to the response here.. such as this
+	// elapsed computed property
+	Elapsed int64 `json:"elapsed"`
 }
 
 type TemplateConfig struct {
@@ -57,10 +65,6 @@ func main() {
 		w.Write([]byte("welcome"))
 	})
 
-	r.Get("/prescription/new", prescriptionNew)
-
-	r.Post("/prescription/create", prescriptionCreate)
-
 	r.Route("/prescriptions", func(r chi.Router) {
 		//r.With(paginate).Get("/", ListPrescriptions)
 		r.Post("/", CreatePrescription) // POST /prescriptions
@@ -72,8 +76,8 @@ func main() {
 			r.Put("/", UpdatePrescription) // PUT /prescriptions/123
 		})
 
-		// GET /articles/whats-up
-		//r.With(ArticleCtx).Get("/{articleSlug:[a-z-]+}", GetArticle)
+		// GET /prescriptions/whats-up
+		//r.With(PrescriptionCtx).Get("/{prescriptionSlug:[a-z-]+}", GetPrescription)
 	})
 
 	// Passing -routes to the program will generate docs for the above
@@ -157,13 +161,60 @@ func paginate(next http.Handler) http.Handler {
 	})
 }
 
+// GetPrescription returns the specific Prescription. You'll notice it just
+// fetches the Prescription right off the context, as its understood that
+// if we made it this far, the Prescription must be on the context. In case
+// its not due to a bug, then it will panic, and our Recoverer will save us.
+func GetPrescription(w http.ResponseWriter, r *http.Request) {
+	// Assume if we've reach this far, we can access the prescription
+	// context because this handler is a child of the PrescriptionCtx
+	// middleware. The worst case, the recoverer middleware will save us.
+	prescription := r.Context().Value("prescription").(*Prescription)
+
+	if err := render.Render(w, r, NewPrescriptionResponse(prescription)); err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+}
+
+// CreatePrescription persists the posted Prescription and returns it
+// back to the client as an acknowledgement.
+func CreatePrescription(w http.ResponseWriter, r *http.Request) {
+	data := &PrescriptionRequest{}
+	if err := render.Bind(r, data); err != nil {
+		render.Render(w, r, ErrInvalidRequest(err))
+		return
+	}
+
+	prescription := data.Prescription
+	blockchainNewPrescription(prescription)
+
+	render.Status(r, http.StatusCreated)
+	render.Render(w, r, NewPrescriptionResponse(prescription))
+}
+
+// UpdatePrescription updates an existing Prescription in our persistent store.
+func UpdatePrescription(w http.ResponseWriter, r *http.Request) {
+	prescription := r.Context().Value("prescription").(*Prescription)
+
+	data := &PrescriptionRequest{Prescription: prescription}
+	if err := render.Bind(r, data); err != nil {
+		render.Render(w, r, ErrInvalidRequest(err))
+		return
+	}
+	prescription = data.Prescription
+	blockchainUpdatePrescription(prescription)
+
+	render.Render(w, r, NewPrescriptionResponse(prescription))
+}
+
 func PrescriptionCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var prescription *Prescription
 		var err error
 
 		if prescriptionID := chi.URLParam(r, "prescriptionID"); prescriptionID != "" {
-			prescription, err = blockchainGetPrescription(prescriptionID)
+			prescription = blockchainGetPrescription(prescriptionID)
 		} else {
 			render.Render(w, r, ErrNotFound)
 			return
@@ -176,6 +227,57 @@ func PrescriptionCtx(next http.Handler) http.Handler {
 		ctx := context.WithValue(r.Context(), "prescription", prescription)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func blockchainGetPrescription(id string) (prescription *Prescription) {
+	//TODO fetch Prescription from blockchain
+	fmt.Printf("blockchainGetPrescription")
+	fmt.Println()
+
+	pres := NewPrescription()
+
+	return pres
+}
+
+func NewPrescription() *Prescription {
+	return &Prescription{
+		ID: "1",
+	}
+}
+
+func blockchainNewPrescription(prescription *Prescription) {
+	//TODO add Prescription to blockchain
+	fmt.Printf("blockchainNewPrescription")
+	fmt.Println()
+}
+
+func blockchainUpdatePrescription(prescription *Prescription) {
+	//TODO add Prescription event to blockchain
+	fmt.Printf("blockchainUpdatePrescription")
+	fmt.Println()
+}
+
+func (p *PrescriptionRequest) Bind(r *http.Request) error {
+	// a.Prescription is nil if no Prescription fields are sent in the request. Return an
+	// error to avoid a nil pointer dereference.
+	if p.Prescription == nil {
+		return errors.New("missing required Prescription fields.")
+	}
+
+	// just a post-process after a decode..
+	return nil
+}
+
+func NewPrescriptionResponse(prescription *Prescription) *PrescriptionResponse {
+	resp := &PrescriptionResponse{Prescription: prescription}
+
+	return resp
+}
+
+func (rd *PrescriptionResponse) Render(w http.ResponseWriter, r *http.Request) error {
+	// Pre-processing before a response is marshalled and sent across the wire
+	rd.Elapsed = 10
+	return nil
 }
 
 //--
