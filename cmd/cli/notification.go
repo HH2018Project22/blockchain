@@ -33,7 +33,9 @@ func doNotification(args []string) {
 		blockchain.NotificationType(notificationType),
 	)
 
-	bc.AddEvent(notification)
+	if result := bc.AddEvent(notification); !result {
+		panic("invalid notification")
+	}
 
 	log.Println("saving blockchain")
 	if err := bc.Save(blockchainPath); err != nil {

@@ -38,6 +38,17 @@ func (bc *Blockchain) AddBlock(block *Block) bool {
 	return true
 }
 
+func (bc *Blockchain) ListPrescriptions() []*Prescription {
+	prescriptions := make([]*Prescription, 0)
+	for _, b := range bc.blocks {
+		if b.Event.Type() == PrescriptionEventType {
+			pe := b.Event.(*PrescriptionEvent)
+			prescriptions = append(prescriptions, pe.Prescription)
+		}
+	}
+	return prescriptions
+}
+
 func (bc *Blockchain) Save(path string) error {
 	db, err := bolt.Open(path, 0666, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {

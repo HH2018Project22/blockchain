@@ -3,11 +3,15 @@ package blockchain
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+
+	validator "gopkg.in/go-playground/validator.v9"
 )
 
 const NotificationEventType EventType = "notification"
 
 const (
+	Received   NotificationType = "received"
 	Packaging  NotificationType = "packaging"
 	Packaged   NotificationType = "packaged"
 	Delivering NotificationType = "delivering"
@@ -15,11 +19,27 @@ const (
 	Transfused NotificationType = "transfused"
 )
 
+var notificationsSequence = []NotificationType{
+	Received, Packaging, Packaged,
+	Delivering, Delivered, Transfused,
+}
+
+func getParentNotificationType(nt NotificationType) NotificationType {
+	var previous NotificationType
+	for _, snt := range notificationsSequence {
+		if snt == nt {
+			return previous
+		}
+		previous = snt
+	}
+	return ""
+}
+
 type NotificationType string
 
 type NotificationEvent struct {
-	PrescriptionHash []byte           `json:"prescription"`
-	NotificationType NotificationType `json:"notification"`
+	PrescriptionHash []byte           `json:"prescription" validate:"required"`
+	NotificationType NotificationType `json:"notification" validate:"required"`
 }
 
 func (e *NotificationEvent) Type() EventType {
@@ -27,6 +47,13 @@ func (e *NotificationEvent) Type() EventType {
 }
 
 func (e *NotificationEvent) Validate(bc *Blockchain) bool {
+
+	validate := validator.New()
+	if err := validate.Struct(e); err != nil {
+		fmt.Print(err)
+		return false
+	}
+
 	return true
 }
 
