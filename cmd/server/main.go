@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 
 	"github.com/HH2018Project22/bloodcoin/blockchain"
@@ -19,6 +21,9 @@ import (
 )
 
 var bc, _ = blockchain.LoadBlockchain("./bloodcoin.db")
+
+type test_struct struct {
+}
 
 type Prescription struct {
 	ID string `json:"id"`
@@ -186,21 +191,34 @@ func GetPrescription(w http.ResponseWriter, r *http.Request) {
 // CreatePrescription persists the posted Prescription and returns it
 // back to the client as an acknowledgement.
 func CreatePrescription(w http.ResponseWriter, r *http.Request) {
-	data := &PrescriptionRequest{}
-	if err := render.Bind(r, data); err != nil {
-		render.Render(w, r, ErrInvalidRequest(err))
-		return
+	decoder := json.NewDecoder(r.Body)
+
+	var t = map[string]interface{}{}
+	err := decoder.Decode(&t)
+
+	if err != nil {
+		panic(err)
 	}
 
-	prescription := data.Prescription
-	blockchainNewPrescription(prescription)
+	file, err := os.OpenFile("result.csv", os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+	defer file.Close()
 
-	render.Status(r, http.StatusCreated)
-	render.Render(w, r, NewPrescriptionResponse(prescription))
+	for k, v := range t {
+		line := fmt.Sprintf("%s, %s\n", k, v)
+		file.WriteString(line)
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+
 }
 
-// UpdatePrescription updates an existing Prescription in our persistent store.
-func UpdatePrescription(w http.ResponseWriter, r *http.Request) {
+// CreateNotification adds a notification for a given Prescription in our blockchain.
+func CreateNotification(w http.ResponseWriter, r *http.Request) {
 	prescription := r.Context().Value("prescription").(*blockchain.Prescription)
 
 	data := &PrescriptionRequest{Prescription: prescription}
