@@ -1,10 +1,10 @@
 {
   "patient": {
-    "firstName": "John",
+    "firstName": "Jane",
     "lastName": "Doe",
     "useName": "Doe",
-    "birthDate": "01/01/1970",
-    "sex": "male"
+    "birthDate": "01/01/1988",
+    "sex": "female"
   },
   "prescriptor": {
     "firstName": "Doctor",

@@ -86,12 +86,11 @@ func (bc *Blockchain) FindPrescriptionNotificationEvents(prescriptionHash []byte
 	return events
 }
 
-func (bc *Blockchain) FindPrescription(prescriptionHash []byte) *Prescription {
+func (bc *Blockchain) FindPrescriptionBlock(prescriptionHash []byte) *Block {
 	for _, b := range bc.blocks {
 		if b.Event.Type() == PrescriptionEventType {
-			pe := b.Event.(*PrescriptionEvent)
-			if bytes.Compare(pe.Prescription.Hash(), prescriptionHash) == 0 {
-				return pe.Prescription
+			if bytes.Compare(b.Hash, prescriptionHash) == 0 {
+				return b
 			}
 		}
 	}

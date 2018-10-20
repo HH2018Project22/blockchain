@@ -53,12 +53,12 @@ func (e *NotificationEvent) Validate(bc *Blockchain) error {
 		return err
 	}
 
-	prescription := bc.FindPrescription(e.PrescriptionHash)
-	if prescription == nil {
+	block := bc.FindPrescriptionBlock(e.PrescriptionHash)
+	if block == nil {
 		return errors.New("prescription does not exist")
 	}
 
-	events := bc.FindPrescriptionNotificationEvents(prescription.Hash())
+	events := bc.FindPrescriptionNotificationEvents(block.Hash)
 	for _, ee := range events {
 		if e.NotificationType == ee.NotificationType {
 			return errors.New("notification already exists")

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -19,8 +20,8 @@ func doDump(args []string) {
 
 	fmt.Printf("------------\n")
 	for _, b := range bc.Blocks() {
-		fmt.Printf("Hash: %x\n", b.Hash)
-		fmt.Printf("Prev. hash: %x\n", b.PrevBlockHash)
+		fmt.Printf("Hash: %s\n", base64.StdEncoding.EncodeToString(b.Hash))
+		fmt.Printf("Prev. hash: %s\n", base64.StdEncoding.EncodeToString(b.PrevBlockHash))
 		data, err := json.Marshal(b.Event)
 		if err != nil {
 			panic(err)

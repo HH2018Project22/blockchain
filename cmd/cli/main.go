@@ -1,12 +1,8 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
-	"net/http"
 	"os"
 
 	"github.com/HH2018Project22/bloodcoin/blockchain"
@@ -62,10 +58,15 @@ func help() {
 func getBlockchain() *blockchain.Blockchain {
 	var bc *blockchain.Blockchain
 
+	var syncHook blockchain.BlockHookFunc
+	if peerEndpoint != "" {
+		syncHook = blockchain.CreateBlockSyncHook(peerEndpoint)
+	}
+
 	if _, err := os.Stat(blockchainPath); os.IsNotExist(err) {
 
 		fmt.Println("creating new blockchain")
-		bc = blockchain.NewBlockchain(beforeBlockAdd)
+		bc = blockchain.NewBlockchain(syncHook)
 		if err = bc.Save(blockchainPath); err != nil {
 			panic(err)
 		}
@@ -73,7 +74,7 @@ func getBlockchain() *blockchain.Blockchain {
 	} else {
 
 		fmt.Printf("loading '%s'\n", blockchainPath)
-		bc, err = blockchain.LoadBlockchain(blockchainPath, beforeBlockAdd)
+		bc, err = blockchain.LoadBlockchain(blockchainPath, syncHook)
 		if err != nil {
 			panic(err)
 		}
@@ -81,30 +82,4 @@ func getBlockchain() *blockchain.Blockchain {
 	}
 
 	return bc
-}
-
-func beforeBlockAdd(block *blockchain.Block) error {
-
-	if peerEndpoint == "" {
-		return nil
-	}
-
-	url := fmt.Sprintf("%s/blocks/new", peerEndpoint)
-
-	data, err := json.Marshal(block)
-	if err != nil {
-		return err
-	}
-
-	res, err := http.Post(url, "json/application", bytes.NewBuffer(data))
-	if err != nil {
-		return err
-	}
-
-	if res.StatusCode != http.StatusCreated {
-		return errors.New("could not propagate block")
-	}
-
-	return nil
-
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"flag"
 	"log"
 
@@ -28,8 +29,13 @@ func doNotification(args []string) {
 
 	log.Println("adding notification")
 
+	prescriptionHashData, err := base64.StdEncoding.DecodeString(prescriptionHash)
+	if err != nil {
+		panic(err)
+	}
+
 	notification := blockchain.NewNotificationEvent(
-		[]byte(prescriptionHash),
+		prescriptionHashData,
 		blockchain.NotificationType(notificationType),
 	)
 
