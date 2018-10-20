@@ -11,7 +11,7 @@ var (
 	maxNonce = math.MaxInt64
 )
 
-const targetBits = 24
+const targetBits = 16
 
 type ProofOfWork struct {
 	block  *Block
@@ -22,7 +22,7 @@ func (pow *ProofOfWork) prepareData(nonce int) []byte {
 	data := bytes.Join(
 		[][]byte{
 			pow.block.PrevBlockHash,
-			pow.block.Event.Data(),
+			pow.block.Event.Hash(),
 			IntToHex(pow.block.Timestamp),
 			IntToHex(int64(targetBits)),
 			IntToHex(int64(nonce)),

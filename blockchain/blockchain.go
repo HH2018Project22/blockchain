@@ -16,6 +16,10 @@ type Blockchain struct {
 	blocks []*Block
 }
 
+func (bc *Blockchain) Blocks() []*Block {
+	return bc.blocks
+}
+
 func (bc *Blockchain) AddBlock(event Event) {
 	prevBlock := bc.blocks[len(bc.blocks)-1]
 	newBlock := NewBlock(event, prevBlock.Hash)
@@ -52,6 +56,7 @@ func LoadBlockchain(path string) (*Blockchain, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer db.Close()
 
 	blocks := []*Block{}
 

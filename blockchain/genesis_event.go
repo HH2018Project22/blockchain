@@ -14,8 +14,8 @@ func (e *GenesisEvent) Validate(bc *Blockchain) bool {
 	return true
 }
 
-func (e *GenesisEvent) Data() []byte {
-	return []byte{}
+func (e *GenesisEvent) Hash() []byte {
+	return []byte(Genesis)
 }
 
 func (e *GenesisEvent) MarshalJSON() ([]byte, error) {

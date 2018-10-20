@@ -7,6 +7,6 @@ type EventType string
 type Event interface {
 	json.Marshaler
 	Type() EventType
-	Data() []byte
+	Hash() []byte
 	Validate(bc *Blockchain) bool
 }
