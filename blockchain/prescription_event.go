@@ -3,13 +3,12 @@ package blockchain
 import (
 	"bytes"
 	"encoding/json"
-	"time"
 )
 
 const Prescription EventType = "prescription"
 
 type PrescriptionEvent struct {
-	Patient Patient `json:"patient"`
+	Patient *Patient `json:"patient"`
 }
 
 func (e *PrescriptionEvent) Type() EventType {
@@ -33,17 +32,10 @@ func (e *PrescriptionEvent) Hash() []byte {
 func (e *PrescriptionEvent) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		Type    EventType `json:"typ"`
-		Patient Patient   `json:"patient"`
+		Patient *Patient  `json:"patient"`
 	}{Prescription, e.Patient})
 }
 
-func NewPrescriptionEvent(patient Patient) Event {
+func NewPrescriptionEvent(patient *Patient) Event {
 	return &PrescriptionEvent{patient}
-}
-
-type Patient struct {
-	FirstName string    `json:"firstName"`
-	LastName  string    `json:"lastName"`
-	UseName   string    `json:"useName"`
-	BirthDate time.Time `json:"birthDate"`
 }
