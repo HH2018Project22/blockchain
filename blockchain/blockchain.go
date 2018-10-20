@@ -1,6 +1,7 @@
 package blockchain
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"time"
@@ -47,6 +48,33 @@ func (bc *Blockchain) ListPrescriptions() []*Prescription {
 		}
 	}
 	return prescriptions
+}
+
+func (bc *Blockchain) FindPrescriptionNotificationEvents(prescriptionHash []byte) []*NotificationEvent {
+	events := make([]*NotificationEvent, 0)
+	for _, b := range bc.blocks {
+		if b.Event.Type() != NotificationEventType {
+			continue
+		}
+		notificationEvent := b.Event.(*NotificationEvent)
+		if bytes.Compare(prescriptionHash, notificationEvent.PrescriptionHash) == -1 {
+			continue
+		}
+		events = append(events, notificationEvent)
+	}
+	return events
+}
+
+func (bc *Blockchain) FindPrescription(prescriptionHash []byte) *Prescription {
+	for _, b := range bc.blocks {
+		if b.Event.Type() == PrescriptionEventType {
+			pe := b.Event.(*PrescriptionEvent)
+			if bytes.Compare(pe.Prescription.Hash(), prescriptionHash) != -1 {
+				return pe.Prescription
+			}
+		}
+	}
+	return nil
 }
 
 func (bc *Blockchain) Save(path string) error {
