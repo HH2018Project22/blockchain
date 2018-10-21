@@ -1,0 +1,4 @@
+[submodule "web"]
+	path = web
+	url = https://github.com/HH2018Project22/web-suivi-prescription
+	branch = develop

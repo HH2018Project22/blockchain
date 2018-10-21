@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"os"
 	"sort"
 	"sync"
 	"time"
@@ -128,7 +129,13 @@ func (bc *Blockchain) Save(path string) error {
 
 func LoadBlockchain(path string, beforeAddBlockHook BlockHookFunc) (*Blockchain, error) {
 
-	db, err := bolt.Open(path, 0666, &bolt.Options{Timeout: 1 * time.Second})
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return nil, err
+	}
+
+	db, err := bolt.Open(path, 0666, &bolt.Options{
+		Timeout: 1 * time.Second,
+	})
 	if err != nil {
 		return nil, err
 	}

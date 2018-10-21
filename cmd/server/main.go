@@ -68,6 +68,11 @@ func main() {
 		r.Post("/new", CreateBlock)
 	})
 
+	staticHandler := http.FileServer(http.Dir("web"))
+	r.Get("/*", func(w http.ResponseWriter, r *http.Request) {
+		staticHandler.ServeHTTP(w, r)
+	})
+
 	http.ListenAndServe(":3000", r)
 }
 
