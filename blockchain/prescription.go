@@ -11,10 +11,10 @@ const (
 )
 
 type Prescription struct {
-	Patient     *Patient     `json:"patient" validate:"dive,required"`
-	Prescriptor *Prescriptor `json:"prescriptor" validate:"dive,required"`
-	Order       *Order       `json:"order" validate:"dive,required"`
-	Urgency     string       `json:"urgency" validate:"required"`
+	Patient     *Patient  `json:"patient" validate:"dive,required"`
+	Prescriptor *Operator `json:"prescriptor" validate:"dive,required"`
+	Order       *Order    `json:"order" validate:"dive,required"`
+	Urgency     string    `json:"urgency" validate:"required"`
 }
 
 func (p *Prescription) Hash() []byte {

@@ -151,6 +151,7 @@ func CreateNotification(w http.ResponseWriter, r *http.Request) {
 	event := blockchain.NewNotificationEvent(
 		notification.PrescriptionHash,
 		notification.NotificationType,
+		notification.Operator,
 	)
 
 	if err := bc.AddEvent(event); err != nil {

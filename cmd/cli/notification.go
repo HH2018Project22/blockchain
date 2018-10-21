@@ -12,11 +12,17 @@ var (
 	notificationCommand = flag.NewFlagSet("notification", flag.ExitOnError)
 	prescriptionHash    string
 	notificationType    string
+	firstName           string
+	lastName            string
+	service             string
 )
 
 func init() {
 	notificationCommand.StringVar(&prescriptionHash, "prescription", prescriptionHash, "Hash de la prescription")
 	notificationCommand.StringVar(&notificationType, "type", notificationType, "Type de la notification")
+	notificationCommand.StringVar(&firstName, "firstName", firstName, "Prénom")
+	notificationCommand.StringVar(&lastName, "lastName", lastName, "Nom")
+	notificationCommand.StringVar(&service, "service", service, "Service")
 }
 
 func doNotification(args []string) {
@@ -34,6 +40,7 @@ func doNotification(args []string) {
 	notification := blockchain.NewNotificationEvent(
 		prescriptionHashData,
 		blockchain.NotificationType(notificationType),
+		blockchain.NewOperator(firstName, lastName, service),
 	)
 
 	if err := bc.AddEvent(notification); err != nil {

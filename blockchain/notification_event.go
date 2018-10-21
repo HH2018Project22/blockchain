@@ -41,6 +41,7 @@ type NotificationType string
 type NotificationEvent struct {
 	PrescriptionHash []byte           `json:"prescription" validate:"required"`
 	NotificationType NotificationType `json:"notification" validate:"required"`
+	Operator         *Operator        `json:"operator" validate:"required,dive"`
 }
 
 func (e *NotificationEvent) Type() EventType {
@@ -86,6 +87,7 @@ func (e *NotificationEvent) Hash() []byte {
 		[]byte(NotificationEventType),
 		e.PrescriptionHash,
 		[]byte(e.NotificationType),
+		[]byte(e.Operator.Hash()),
 	}, []byte{})
 }
 
@@ -94,7 +96,11 @@ func (e *NotificationEvent) MarshalJSON() ([]byte, error) {
 		Type             EventType        `json:"type"`
 		PrescriptionHash string           `json:"prescription"`
 		NotificationType NotificationType `json:"notification"`
-	}{NotificationEventType, base58.Encode(e.PrescriptionHash), e.NotificationType})
+		Operator         *Operator        `json:"operator"`
+	}{
+		NotificationEventType, base58.Encode(e.PrescriptionHash),
+		e.NotificationType, e.Operator,
+	})
 }
 
 func (e *NotificationEvent) UnmarshalJSON(data []byte) error {
@@ -110,9 +116,12 @@ func (e *NotificationEvent) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	e.PrescriptionHash = base58.Decode(prescriptionHash)
+	if err := json.Unmarshal(*rawNotification["operator"], &e.Operator); err != nil {
+		return err
+	}
 	return nil
 }
 
-func NewNotificationEvent(prescriptionHash []byte, notificationType NotificationType) Event {
-	return &NotificationEvent{prescriptionHash, notificationType}
+func NewNotificationEvent(prescriptionHash []byte, notificationType NotificationType, op *Operator) Event {
+	return &NotificationEvent{prescriptionHash, notificationType, op}
 }
