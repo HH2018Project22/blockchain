@@ -1,0 +1,22 @@
+{
+  "patient": {
+    "firstName": "Franck",
+    "lastName": "Castle",
+    "useName": "Castle",
+    "birthDate": "10/09/1975",
+    "sex": "male"
+  },
+  "prescriptor": {
+    "firstName": "Jack",
+    "lastName": "Sheppard",
+    "service": "Dharma Initiative"
+  },
+  "order": {
+    "id": "2",
+    "amount": 1,
+    "bloodType": "O-",
+    "transfusionProtocol": "RAS",
+    "transfusionTime": "2018-10-21T18:45:30Z"
+  },
+  "urgency": "high"
+}

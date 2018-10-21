@@ -1,0 +1,22 @@
+{
+  "patient": {
+    "firstName": "Henry",
+    "lastName": "Michel",
+    "useName": "Michel",
+    "birthDate": "30/06/1978",
+    "sex": "female"
+  },
+  "prescriptor": {
+    "firstName": "Patrick",
+    "lastName": "Patrick",
+    "service": "Riviera Détente"
+  },
+  "order": {
+    "id": "4",
+    "amount": 3,
+    "bloodType": "AB-",
+    "transfusionProtocol": "RAS",
+    "transfusionTime": "2018-10-21T21:58:30Z"
+  },
+  "urgency": "emergency"
+}
