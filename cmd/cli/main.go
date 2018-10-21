@@ -65,7 +65,6 @@ func getBlockchain() *blockchain.Blockchain {
 
 	if _, err := os.Stat(blockchainPath); os.IsNotExist(err) {
 
-		fmt.Println("creating new blockchain")
 		bc = blockchain.NewBlockchain(syncHook)
 		if err = bc.Save(blockchainPath); err != nil {
 			panic(err)
@@ -73,7 +72,6 @@ func getBlockchain() *blockchain.Blockchain {
 
 	} else {
 
-		fmt.Printf("loading '%s'\n", blockchainPath)
 		bc, err = blockchain.LoadBlockchain(blockchainPath, syncHook)
 		if err != nil {
 			panic(err)
