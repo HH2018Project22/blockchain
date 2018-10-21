@@ -163,7 +163,7 @@ func CreateNotification(w http.ResponseWriter, r *http.Request) {
 		notification.Operator,
 	)
 
-	if err := bc.AddEvent(event); err != nil {
+	if _, err := bc.AddEvent(event); err != nil {
 		panic(err)
 	}
 

@@ -43,7 +43,7 @@ func doNotification(args []string) {
 		blockchain.NewOperator(firstName, lastName, service),
 	)
 
-	if err := bc.AddEvent(notification); err != nil {
+	if _, err := bc.AddEvent(notification); err != nil {
 		panic(err)
 	}
 

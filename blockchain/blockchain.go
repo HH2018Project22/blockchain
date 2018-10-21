@@ -29,9 +29,9 @@ func (bc *Blockchain) Blocks() []*Block {
 	return bc.blocks
 }
 
-func (bc *Blockchain) AddEvent(event Event) error {
+func (bc *Blockchain) AddEvent(event Event) (*Block, error) {
 	if err := event.Validate(bc); err != nil {
-		return err
+		return nil, err
 	}
 	prevBlock := bc.blocks[len(bc.blocks)-1]
 	newBlock := NewBlock(event, prevBlock.Hash)
@@ -42,24 +42,25 @@ func (bc *Blockchain) AddBlock(block *Block) error {
 	if err := block.Validate(bc); err != nil {
 		return err
 	}
-	return bc.add(block)
+	_, err := bc.add(block)
+	return err
 }
 
-func (bc *Blockchain) add(block *Block) error {
+func (bc *Blockchain) add(block *Block) (*Block, error) {
 	bc.mutex.Lock()
 	defer bc.mutex.Unlock()
 	for _, b := range bc.blocks {
 		if bytes.Compare(b.PrevBlockHash, block.PrevBlockHash) == 0 {
-			return errors.New("parent already used")
+			return nil, errors.New("parent already used")
 		}
 	}
 	if bc.beforeAddBlockHook != nil {
 		if err := bc.beforeAddBlockHook(block); err != nil {
-			return err
+			return nil, err
 		}
 	}
 	bc.blocks = append(bc.blocks, block)
-	return nil
+	return block, nil
 }
 
 func (bc *Blockchain) ListPrescriptions() []*HashedPrescription {

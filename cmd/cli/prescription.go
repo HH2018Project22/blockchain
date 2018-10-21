@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/HH2018Project22/bloodcoin/blockchain"
+	"github.com/btcsuite/btcutil/base58"
 )
 
 var (
@@ -33,10 +34,13 @@ func doPrescription(args []string) {
 	}
 
 	prescriptionEvent := blockchain.NewPrescriptionEvent(prescription)
-	if err := bc.AddEvent(prescriptionEvent); err != nil {
+	block, err := bc.AddEvent(prescriptionEvent)
+
+	if err != nil {
 		panic(err)
 	}
 
+	log.Println("Block:", base58.Encode(block.Hash))
 	log.Println("saving blockchain")
 	if err := bc.Save(blockchainPath); err != nil {
 		panic(err)
