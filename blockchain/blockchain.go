@@ -7,9 +7,7 @@ import (
 	"os"
 	"sort"
 	"sync"
-	"time"
 
-	"github.com/boltdb/bolt"
 	"github.com/btcsuite/btcutil/base58"
 )
 
@@ -105,61 +103,36 @@ func (bc *Blockchain) FindPrescriptionBlock(prescriptionHash []byte) *Block {
 }
 
 func (bc *Blockchain) Save(path string) error {
-	db, err := bolt.Open(path, 0666, &bolt.Options{Timeout: 1 * time.Second})
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		return err
 	}
-	defer db.Close()
-	return db.Update(func(tx *bolt.Tx) error {
-		bucket, err := tx.CreateBucketIfNotExists(blocksBucket)
-		if err != nil {
-			return err
-		}
-		for _, b := range bc.blocks {
-			data, err := json.Marshal(b)
-			if err != nil {
-				return err
-			}
-			if err := bucket.Put(b.Hash, data); err != nil {
-				return err
-			}
-		}
-		return nil
-	})
+	defer file.Close()
+
+	encoder := json.NewEncoder(file)
+
+	bc.mutex.RLock()
+	defer bc.mutex.RUnlock()
+
+	if err := encoder.Encode(bc.blocks); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func LoadBlockchain(path string, beforeAddBlockHook BlockHookFunc) (*Blockchain, error) {
 
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return nil, err
-	}
-
-	db, err := bolt.Open(path, 0666, &bolt.Options{
-		Timeout: 1 * time.Second,
-	})
+	file, err := os.OpenFile(path, os.O_RDONLY, 0666)
 	if err != nil {
 		return nil, err
 	}
-	defer db.Close()
+	defer file.Close()
 
-	blocks := []*Block{}
+	decoder := json.NewDecoder(file)
+	blocks := make([]*Block, 0)
 
-	err = db.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket(blocksBucket)
-		if bucket == nil {
-			return errors.New("unknown bucket")
-		}
-		c := bucket.Cursor()
-		for k, v := c.First(); k != nil; k, v = c.Next() {
-			b := &Block{}
-			if err := json.Unmarshal(v, b); err != nil {
-				return err
-			}
-			blocks = append(blocks, b)
-		}
-		return nil
-	})
-	if err != nil {
+	if err := decoder.Decode(&blocks); err != nil {
 		return nil, err
 	}
 

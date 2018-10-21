@@ -188,6 +188,12 @@ func CreateBlock(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := bc.Save(dbPath); err != nil {
+		log.Println(err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusCreated)
 }
 
