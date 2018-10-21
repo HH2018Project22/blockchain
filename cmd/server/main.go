@@ -72,15 +72,18 @@ func main() {
 }
 
 func ListBlocks(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	writeJSON(w, bc.Blocks())
 }
 
 func ListPrescriptions(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	prescriptions := bc.ListPrescriptions()
 	writeJSON(w, prescriptions)
 }
 
 func ReadPrescription(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	prescriptionHash := chi.URLParam(r, "prescriptionHash")
 
 	b58Hash := base58.Decode(prescriptionHash)
@@ -97,6 +100,7 @@ func ReadPrescription(w http.ResponseWriter, r *http.Request) {
 }
 
 func ReadPrescriptionNotifications(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	prescriptionHash := chi.URLParam(r, "prescriptionHash")
 
 	b58Hash := base58.Decode(prescriptionHash)
@@ -115,7 +119,7 @@ func ReadPrescriptionNotifications(w http.ResponseWriter, r *http.Request) {
 // CreatePrescription persists the posted Prescription and returns it
 // back to the client as an acknowledgement.
 func CreatePrescription(w http.ResponseWriter, r *http.Request) {
-
+	enableCors(&w)
 	decoder := json.NewDecoder(r.Body)
 
 	var t = map[string]interface{}{}
@@ -144,7 +148,7 @@ func CreatePrescription(w http.ResponseWriter, r *http.Request) {
 
 // CreateNotification adds a notification for a given Prescription in our blockchain.
 func CreateNotification(w http.ResponseWriter, r *http.Request) {
-
+	enableCors(&w)
 	notification := &blockchain.NotificationEvent{}
 	parseJSON(r, notification)
 
@@ -163,7 +167,7 @@ func CreateNotification(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateBlock(w http.ResponseWriter, r *http.Request) {
-
+	enableCors(&w)
 	block := &blockchain.Block{}
 	decoder := json.NewDecoder(r.Body)
 
@@ -195,4 +199,8 @@ func writeJSON(w http.ResponseWriter, data interface{}) {
 	if err := encoder.Encode(data); err != nil {
 		panic(err)
 	}
+}
+
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 }

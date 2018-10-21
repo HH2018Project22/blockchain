@@ -10,6 +10,11 @@ const (
 	UrgencyEmergency = "emergency"
 )
 
+type HashedPrescription struct {
+	Hash         string        `json:"hash" validate:"required"`
+	Prescription *Prescription `json:"prescription" validate:"dive,required"`
+}
+
 type Prescription struct {
 	Patient     *Patient  `json:"patient" validate:"dive,required"`
 	Prescriptor *Operator `json:"prescriptor" validate:"dive,required"`

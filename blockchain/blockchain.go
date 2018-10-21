@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
+	"github.com/btcsuite/btcutil/base58"
 )
 
 var (
@@ -60,15 +61,19 @@ func (bc *Blockchain) add(block *Block) error {
 	return nil
 }
 
-func (bc *Blockchain) ListPrescriptions() []*Prescription {
-	prescriptions := make([]*Prescription, 0)
+func (bc *Blockchain) ListPrescriptions() []*HashedPrescription {
+	hashedPrescriptions := make([]*HashedPrescription, 0)
 	for _, b := range bc.blocks {
 		if b.Event.Type() == PrescriptionEventType {
 			pe := b.Event.(*PrescriptionEvent)
-			prescriptions = append(prescriptions, pe.Prescription)
+			hashedPrescription := &HashedPrescription{
+				Hash:         base58.Encode(b.Hash),
+				Prescription: pe.Prescription,
+			}
+			hashedPrescriptions = append(hashedPrescriptions, hashedPrescription)
 		}
 	}
-	return prescriptions
+	return hashedPrescriptions
 }
 
 func (bc *Blockchain) FindPrescriptionNotificationEvents(prescriptionHash []byte) []*NotificationEvent {
