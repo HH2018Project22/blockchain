@@ -4,14 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+
+	"github.com/btcsuite/btcutil/base58"
 )
 
 type Block struct {
-	Timestamp     int64  `json:"timestamp"`
-	Event         Event  `json:"event"`
-	PrevBlockHash []byte `json:"previousBlockHash"`
-	Hash          []byte `json:"hash"`
-	Nonce         int    `json:"nonce"`
+	Timestamp     int64
+	Event         Event
+	PrevBlockHash []byte
+	Hash          []byte
+	Nonce         int
 }
 
 func (b *Block) Validate(bc *Blockchain) error {
@@ -25,6 +27,17 @@ func (b *Block) Validate(bc *Blockchain) error {
 	return nil
 }
 
+func (b *Block) MarshalJSON() ([]byte, error) {
+	rawBlock := map[string]interface{}{
+		"timestamp":         b.Timestamp,
+		"event":             b.Event,
+		"previousBlockHash": base58.Encode(b.PrevBlockHash),
+		"hash":              base58.Encode(b.Hash),
+		"nonce":             b.Nonce,
+	}
+	return json.Marshal(rawBlock)
+}
+
 func (b *Block) UnmarshalJSON(data []byte) error {
 
 	var rawBlock map[string]*json.RawMessage
@@ -36,13 +49,17 @@ func (b *Block) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	if err := json.Unmarshal(*rawBlock["previousBlockHash"], &b.PrevBlockHash); err != nil {
+	var prevBlockHash string
+	if err := json.Unmarshal(*rawBlock["previousBlockHash"], &prevBlockHash); err != nil {
 		return err
 	}
+	b.PrevBlockHash = base58.Decode(prevBlockHash)
 
-	if err := json.Unmarshal(*rawBlock["hash"], &b.Hash); err != nil {
+	var hash string
+	if err := json.Unmarshal(*rawBlock["hash"], &hash); err != nil {
 		return err
 	}
+	b.Hash = base58.Decode(hash)
 
 	if err := json.Unmarshal(*rawBlock["nonce"], &b.Nonce); err != nil {
 		return err

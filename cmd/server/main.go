@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -10,6 +9,7 @@ import (
 	"os"
 
 	"github.com/HH2018Project22/bloodcoin/blockchain"
+	"github.com/btcsuite/btcutil/base58"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 )
@@ -83,13 +83,8 @@ func ListPrescriptions(w http.ResponseWriter, r *http.Request) {
 func ReadPrescription(w http.ResponseWriter, r *http.Request) {
 	prescriptionHash := chi.URLParam(r, "prescriptionHash")
 
-	b64hash, err := base64.URLEncoding.DecodeString(prescriptionHash)
-
-	if err != nil {
-		panic(err)
-	}
-
-	block := bc.FindPrescriptionBlock(b64hash)
+	b58Hash := base58.Decode(prescriptionHash)
+	block := bc.FindPrescriptionBlock(b58Hash)
 
 	if block == nil {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
@@ -104,13 +99,9 @@ func ReadPrescription(w http.ResponseWriter, r *http.Request) {
 func ReadPrescriptionNotifications(w http.ResponseWriter, r *http.Request) {
 	prescriptionHash := chi.URLParam(r, "prescriptionHash")
 
-	b64hash, err := base64.URLEncoding.DecodeString(prescriptionHash)
+	b58Hash := base58.Decode(prescriptionHash)
 
-	if err != nil {
-		panic(err)
-	}
-
-	events := bc.FindPrescriptionNotificationEvents(b64hash)
+	events := bc.FindPrescriptionNotificationEvents(b58Hash)
 
 	s := make([]*blockchain.NotificationEvent, 0)
 

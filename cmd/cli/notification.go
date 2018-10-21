@@ -1,11 +1,11 @@
 package main
 
 import (
-	"encoding/base64"
 	"flag"
 	"log"
 
 	"github.com/HH2018Project22/bloodcoin/blockchain"
+	"github.com/btcsuite/btcutil/base58"
 )
 
 var (
@@ -29,10 +29,7 @@ func doNotification(args []string) {
 
 	log.Println("adding notification")
 
-	prescriptionHashData, err := base64.StdEncoding.DecodeString(prescriptionHash)
-	if err != nil {
-		panic(err)
-	}
+	prescriptionHashData := base58.Decode(prescriptionHash)
 
 	notification := blockchain.NewNotificationEvent(
 		prescriptionHashData,

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/btcsuite/btcutil/base58"
 	validator "gopkg.in/go-playground/validator.v9"
 )
 
@@ -91,9 +92,25 @@ func (e *NotificationEvent) Hash() []byte {
 func (e *NotificationEvent) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		Type             EventType        `json:"type"`
-		PrescriptionHash []byte           `json:"prescription"`
+		PrescriptionHash string           `json:"prescription"`
 		NotificationType NotificationType `json:"notification"`
-	}{NotificationEventType, e.PrescriptionHash, e.NotificationType})
+	}{NotificationEventType, base58.Encode(e.PrescriptionHash), e.NotificationType})
+}
+
+func (e *NotificationEvent) UnmarshalJSON(data []byte) error {
+	var rawNotification map[string]*json.RawMessage
+	if err := json.Unmarshal(data, &rawNotification); err != nil {
+		return err
+	}
+	if err := json.Unmarshal(*rawNotification["notification"], &e.NotificationType); err != nil {
+		return err
+	}
+	var prescriptionHash string
+	if err := json.Unmarshal(*rawNotification["prescription"], &prescriptionHash); err != nil {
+		return err
+	}
+	e.PrescriptionHash = base58.Decode(prescriptionHash)
+	return nil
 }
 
 func NewNotificationEvent(prescriptionHash []byte, notificationType NotificationType) Event {
